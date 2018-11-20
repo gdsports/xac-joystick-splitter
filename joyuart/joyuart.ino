@@ -26,14 +26,45 @@ SOFTWARE.
 
    You must select Joystick from the "Tools > USB Type" menu
 
+Add support for Adafruit ItsyBitsy 32U4. Should also work for other 32u4 boards
+such as Arduino Micro and SparkFun/Arduino/clone Pro Micro. But the #if must be
+updated. 5V is OK because 32u4 outputs are not connected to any 3.3V inputs.
+
+   Add support for Adafruit Trinket M0 but this requires a patch to work?
 */
 
-#if defined(ARDUINO_AVR_ITSYBITSY32U4_3V)
+#define ARDUINO_AVR_ITSYBITSY32U4    (defined(ARDUINO_AVR_ITSYBITSY32U4_3V)||defined(ARDUINO_AVR_ITSYBITSY32U4_5V))
+
+#if ARDUINO_AVR_ITSYBITSY32U4 || defined(ADAFRUIT_TRINKET_M0)
 #define SerialDebug Serial
 #include "Joystick.h"
-Joystick_ Joystick;
+Joystick_ Joystick(0x03, JOYSTICK_TYPE_JOYSTICK,
+    12,                 // Button count
+    0,                  // Hat switches
+    true, true, false,  // X, Y, Z axes
+    false, false, false,// X, Y, Z rotation axes
+    false, false, false,// rudder, throttle, accelerator
+    false, false        // brake, steering
+    );
+// configure the joystick to manual send mode.  This gives precise
+// control over when the computer receives updates, but it does
+// require you to manually call Joystick.sendState().
+#define BEGIN() begin(false)
+#define SETXAXIS(x) setXAxis(x)
+#define SETYAXIS(x) setYAxis(x)
+#define SETBUTTON(button_num, value)    setButton(button_num, value)
+#define SENDSTATE() sendState()
 #else
+// Default is Teensy 3 or LC
 #define SerialDebug Serial2
+  // configure the joystick to manual send mode.  This gives precise
+  // control over when the computer receives updates, but it does
+  // require you to manually call Joystick.send_now().
+#define BEGIN() useManualSend(true)
+#define SETXAXIS(x) X(x)
+#define SETYAXIS(x) Y(x)
+#define SETBUTTON(button_num, value)    button(((button_num)+1), (value))
+#define SENDSTATE() send_now()
 #endif
 
 // Configure the number of buttons.  Be careful not
@@ -69,10 +100,7 @@ void setup() {
   // USB HID report received on this port.
   Serial1.begin(115200);
 
-  // configure the joystick to manual send mode.  This gives precise
-  // control over when the computer receives updates, but it does
-  // require you to manually call Joystick.send_now().
-  Joystick.useManualSend(true);
+  Joystick.BEGIN();
 
   memset(HIDrptOld, 0xFF, sizeof(HIDrptOld));
   HIDrptLen = 0;
@@ -83,22 +111,22 @@ void analyze_HIDrpt(const struct GamePadEventData *evt)
 {
   SerialDebug.print("X: ");
   SerialDebug.print(evt->x, HEX);
-  Joystick.X(evt->x);
+  Joystick.SETXAXIS(evt->x);
   SerialDebug.print(" Y: ");
   SerialDebug.print(evt->y, HEX);
-  Joystick.Y(evt->y);
+  Joystick.SETYAXIS(evt->y);
   SerialDebug.print(" Buttons A: ");
   SerialDebug.print(evt->buttons_a, HEX);
   for (int i = 0; i < 8; i++) {
-    Joystick.button(i+1, (evt->buttons_a & (1<<i))!=0);
+    Joystick.SETBUTTON(i, (evt->buttons_a & (1<<i))!=0);
   }
   SerialDebug.print(" Buttons B: ");
   SerialDebug.print(evt->buttons_b, HEX);
   for (int i = 0; i < 8; i++) {
-    Joystick.button(i+9, (evt->buttons_b & (1<<i))!=0);
+    Joystick.SETBUTTON(i+8, (evt->buttons_b & (1<<i))!=0);
   }
   SerialDebug.println();
-  Joystick.send_now();
+  Joystick.SENDSTATE();
 }
 
 uint8_t deserialize(char *buf, uint8_t *outbuf, uint8_t outbuf_len)
