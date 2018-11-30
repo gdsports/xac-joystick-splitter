@@ -4,6 +4,18 @@ The Microsoft Xbox Adaptive Controller (XAC) ignores the hat switch on the
 Logitech Extreme 3D Pro flight stick. The joystick splitter project is one way
 to solve this problem using Arduino compatible boards.
 
+NOTE: A few people have pointed that using joysticks, keyboards, mice,
+head trackers, etc. with consoles is not new. If you do not need the XAC for
+button and switch inputs, consider the following alternatives. Or use one of
+the following with an XAC if you do not want to bother with building the
+joystick splitter. I have not used any of them so you will have to investigate
+on your own.
+
+* The [GIMX](https://gimx.fr) open source project.
+* [CronusMax](https://cronusmax.com/)
+* [Titan Two](https://www.consoletuner.com/)
+* [Xim APEX](https://xim.tech/)
+
 ![LE3DP, joystick splitter, and XAC](./images/joysplit_overview.jpg)
 
 ## What works

@@ -30,14 +30,14 @@ Add support for Adafruit ItsyBitsy 32U4. Should also work for other 32u4 boards
 such as Arduino Micro and SparkFun/Arduino/clone Pro Micro. But the #if must be
 updated. 5V is OK because 32u4 outputs are not connected to any 3.3V inputs.
 
-   Add support for Adafruit Trinket M0 but this requires a patch to work?
 */
 
 #define ARDUINO_AVR_ITSYBITSY32U4    (defined(ARDUINO_AVR_ITSYBITSY32U4_3V)||defined(ARDUINO_AVR_ITSYBITSY32U4_5V))
 
-#if ARDUINO_AVR_ITSYBITSY32U4 || defined(ADAFRUIT_TRINKET_M0)
-#define SerialDebug Serial
-#include "Joystick.h"
+#if ARDUINO_AVR_ITSYBITSY32U4
+#define SerialDebug     if(0)Serial1
+
+#include "Joystick.h"   // https://github.com/MHeironimus/ArduinoJoystickLibrary/Joystick
 Joystick_ Joystick(0x03, JOYSTICK_TYPE_JOYSTICK,
     12,                 // Button count
     0,                  // Hat switches
@@ -56,7 +56,7 @@ Joystick_ Joystick(0x03, JOYSTICK_TYPE_JOYSTICK,
 #define SENDSTATE() sendState()
 #else
 // Default is Teensy 3 or LC
-#define SerialDebug Serial2
+#define SerialDebug if(0)Serial2
   // configure the joystick to manual send mode.  This gives precise
   // control over when the computer receives updates, but it does
   // require you to manually call Joystick.send_now().
